@@ -8,24 +8,22 @@ import Section from 'components/Section/Section';
 export function App() {
   const localContacts = localStorage.getItem('contacts');
   const parseContacts = JSON.parse(localContacts);
-  const [state, setState] = useState(() => {
+  const [contacts, setContacts] = useState(() => {
     if (parseContacts) {
-      return { contacts: parseContacts, filter: '' };
+      return parseContacts;
     }
-    return {
-      contacts: [],
-      filter: '',
-    };
+    return [];
   });
+  const [filter, setFilter] = useState('');
 
   //Add contacts to the state
   const handleChange = evt => {
-    setState({ ...state, [evt.currentTarget.name]: evt.target.value });
+    setFilter(evt.target.value);
   };
 
   //Add contacts
   const handleAddContact = data => {
-    const existContact = state.contacts.filter(contact => {
+    const existContact = contacts.filter(contact => {
       return contact.name.toLowerCase().includes(data.name.toLowerCase());
     });
 
@@ -35,34 +33,29 @@ export function App() {
       return;
     }
 
-    //Add ann ID to a contact
+    //Add an ID to a contact
     const id = nanoid();
-    setState({
-      ...state,
-      contacts: [
-        ...state.contacts,
-        { name: data.name, id: id, number: data.number },
-      ],
-    });
+    setContacts([
+      ...contacts,
+      { name: data.name, id: id, number: data.number },
+    ]);
   };
 
   //Delete a contact with ID
   const deleteContact = contactId => {
     //Return a new state without contact
-    setState(prevState => ({
-      ...state,
-      contacts: prevState.contacts.filter(contact => contact.id !== contactId),
-    }));
+
+    setContacts(contacts.filter(contact => contact.id !== contactId));
   };
 
   //Add initial contacts from LocalStorage
   useEffect(() => {
-    localStorage.setItem('contacts', JSON.stringify(state.contacts));
-  }, [state]);
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
 
   //Filters
-  const toLowerCaseFilter = state.filter.toLowerCase();
-  const filteredState = state.contacts.filter(contact => {
+  const toLowerCaseFilter = filter.toLowerCase();
+  const filteredState = contacts.filter(contact => {
     return contact.name.toLowerCase().includes(toLowerCaseFilter);
   });
 
@@ -73,7 +66,7 @@ export function App() {
       </Section>
 
       <Section title="Contacts">
-        <Filter value={state.filter} onChange={handleChange} />
+        <Filter value={filter} onChange={handleChange} />
         <ContactList filteredState={filteredState} onDelete={deleteContact} />
       </Section>
     </div>
