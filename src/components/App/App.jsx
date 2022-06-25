@@ -1,43 +1,31 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import { nanoid } from 'nanoid';
 import ContactForm from 'components/ContactForm/ContactForm';
 import Filter from 'components/Filter/Filter';
 import ContactList from 'components/ContactList/ContactList';
 import Section from 'components/Section/Section';
 
-export class App extends Component {
-  state = {
-    contacts: [],
-    filter: '',
-  };
-
-  //Add initial contacts from LocalStorage
-  componentDidMount() {
-    const localContacts = localStorage.getItem('contacts');
-    const parseContacts = JSON.parse(localContacts);
+export function App() {
+  const localContacts = localStorage.getItem('contacts');
+  const parseContacts = JSON.parse(localContacts);
+  const [state, setState] = useState(() => {
     if (parseContacts) {
-      this.setState({
-        contacts: parseContacts,
-      });
+      return { contacts: parseContacts, filter: '' };
     }
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    //Update local storage
-    if (prevState.contacts !== this.state.contacts) {
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-    }
-  }
+    return {
+      contacts: [],
+      filter: '',
+    };
+  });
 
   //Add contacts to the state
-  handleChange = evt => {
-    this.setState({ [evt.currentTarget.name]: evt.target.value });
+  const handleChange = evt => {
+    setState({ ...state, [evt.currentTarget.name]: evt.target.value });
   };
 
   //Add contacts
-  handleAddContact = data => {
-    const stateContacts = [...this.state.contacts];
-    const existContact = this.state.contacts.filter(contact => {
+  const handleAddContact = data => {
+    const existContact = state.contacts.filter(contact => {
       return contact.name.toLowerCase().includes(data.name.toLowerCase());
     });
 
@@ -49,42 +37,45 @@ export class App extends Component {
 
     //Add ann ID to a contact
     const id = nanoid();
-    this.setState({
+    setState({
+      ...state,
       contacts: [
-        ...stateContacts,
+        ...state.contacts,
         { name: data.name, id: id, number: data.number },
       ],
     });
   };
 
   //Delete a contact with ID
-  deleteContact = contactId => {
+  const deleteContact = contactId => {
     //Return a new state without contact
-    this.setState(prevState => ({
+    setState(prevState => ({
+      ...state,
       contacts: prevState.contacts.filter(contact => contact.id !== contactId),
     }));
   };
 
-  render() {
-    const toLowerCaseFilter = this.state.filter.toLowerCase();
-    const filteredState = this.state.contacts.filter(contact => {
-      return contact.name.toLowerCase().includes(toLowerCaseFilter);
-    });
+  //Add initial contacts from LocalStorage
+  useEffect(() => {
+    localStorage.setItem('contacts', JSON.stringify(state.contacts));
+  }, [state]);
 
-    return (
-      <div>
-        <Section title="Phonebook" border="1px solid">
-          <ContactForm onSubmit={this.handleAddContact} />
-        </Section>
+  //Filters
+  const toLowerCaseFilter = state.filter.toLowerCase();
+  const filteredState = state.contacts.filter(contact => {
+    return contact.name.toLowerCase().includes(toLowerCaseFilter);
+  });
 
-        <Section title="Contacts">
-          <Filter value={this.state.filter} onChange={this.handleChange} />
-          <ContactList
-            filteredState={filteredState}
-            onDelete={this.deleteContact}
-          />
-        </Section>
-      </div>
-    );
-  }
+  return (
+    <div>
+      <Section title="Phonebook" border="1px solid">
+        <ContactForm onSubmit={handleAddContact} />
+      </Section>
+
+      <Section title="Contacts">
+        <Filter value={state.filter} onChange={handleChange} />
+        <ContactList filteredState={filteredState} onDelete={deleteContact} />
+      </Section>
+    </div>
+  );
 }
