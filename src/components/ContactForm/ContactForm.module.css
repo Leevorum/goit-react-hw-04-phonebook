@@ -1,0 +1,17 @@
+.contactForm {
+  display: flex;
+  flex-direction: column;
+}
+
+.formItem {
+  display: flex;
+  width: 250px;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+.input {
+  margin-top: 10px;
+}
+.btn {
+  width: 120px;
+}
