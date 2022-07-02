@@ -36,8 +36,8 @@ export function App() {
     //Add an ID to a contact
     const id = nanoid();
     setContacts([
-      ...contacts,
       { name: data.name, id: id, number: data.number },
+      ...contacts,
     ]);
   };
 
